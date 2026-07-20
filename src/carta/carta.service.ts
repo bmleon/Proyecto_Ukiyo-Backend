@@ -31,6 +31,14 @@ export class CartaService {
   // MÉTODOS DE ALÉRGENOS
   // ==========================================
 
+  async createAlergeno(dto: { nombre: string }) {
+    try {
+      return await this.prisma.alergenos.create({ data: dto });
+    } catch (error: any) {
+      throw new BadRequestException(`Error al crear alérgeno: ${error.message}`);
+    }
+  }
+
   async findAllAlergenos() {
     return await this.prisma.alergenos.findMany({
       orderBy: { nombre: 'asc' },

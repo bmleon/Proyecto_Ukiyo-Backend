@@ -45,6 +45,13 @@ export class CartaController {
     return await this.cartaService.createCategoria(dto);
   }
 
+  @Post('alergenos')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async createAlergeno(@Body() dto: { nombre: string }) {
+    return await this.cartaService.createAlergeno(dto);
+  }
+
   @Post('platos')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
