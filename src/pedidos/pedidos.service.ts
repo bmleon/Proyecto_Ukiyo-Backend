@@ -21,7 +21,27 @@ export class PedidosService {
     this.logger.log(`Registrando nuevo pedido para: ${dto.clienteEmail}`);
 
     try {
-      // Usamos una transacción de Prisma para asegurar que el pedido, sus detalles y el descuento de stock ocurran juntos
+      // 1. PRE-VALIDACIÓN: Verificar disponibilidad de stock para cada plato ANTES de la transacción
+      for (const detalle of dto.detalles) {
+        // Buscamos la composición/receta del plato
+        const composicion = await this.prisma.composicion_platos.findMany({
+          where: { plato_id: detalle.platoId },
+          include: { inventario: true },
+        });
+
+        for (const ingrediente of composicion) {
+          const cantidadTotalNecesaria = Number(ingrediente.cantidad_necesaria) * detalle.cantidad;
+          const stockDisponible = Number(ingrediente.inventario.stock_actual);
+
+          if (stockDisponible < cantidadTotalNecesaria) {
+            throw new BadRequestException(
+              `Stock insuficiente para el ingrediente "${ingrediente.inventario.nombre}". Necesario: ${cantidadTotalNecesaria}${ingrediente.inventario.unidad_medida}, Disponible: ${stockDisponible}${ingrediente.inventario.unidad_medida}.`
+            );
+          }
+        }
+      }
+
+      // 2. Transacción de Prisma segura tras comprobar que hay existencias
       return await this.prisma.$transaction(async (tx) => {
         const nuevoPedido = await tx.pedidos.create({
           data: {
@@ -44,7 +64,7 @@ export class PedidosService {
           })),
         });
 
-        // Descontamos automáticamente el stock de ingredientes del inventario en base a la receta del plato vendido
+        // Descontamos automáticamente el stock de ingredientes del inventario
         for (const detalle of dto.detalles) {
           await this.inventarioService.descontarStockPorVenta(detalle.platoId, detalle.cantidad);
         }
@@ -59,6 +79,10 @@ export class PedidosService {
         });
       });
     } catch (error: any) {
+      // Si el error ya es una BadRequestException de la validación, la lanzamos directamente
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new BadRequestException(`Error al procesar el pedido: ${error.message}`);
     }
   }

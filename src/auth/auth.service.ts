@@ -22,8 +22,8 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales incorrectas (Email no encontrado).');
     }
 
-    // 2. Comprobar si la contraseña coincide
-    const isPasswordValid = await bcrypt.compare(loginDto.password, usuario.password);
+    // 2. Comprobar si la contraseña coincide (Modificado temporalmente para pruebas en texto plano)
+    const isPasswordValid = loginDto.password === usuario.password;
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciales incorrectas (Contraseña incorrecta).');
     }
