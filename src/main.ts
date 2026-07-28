@@ -8,9 +8,13 @@ async function bootstrap() {
   // 🆕 2. Activamos Helmet en la primera línea para interceptar y proteger todas las peticiones
   app.use(helmet());
 
-  // 1. Habilitamos CORS para que tu frontend de Nuxt (puerto 3000) pueda conectarse al backend
+  // 1. Habilitamos CORS para que tu frontend local y los despliegues en Vercel puedan conectarse
   app.enableCors({
-    origin: ['http://localhost:3000'], 
+    origin: [
+      'http://localhost:3000',
+      'https://admin-ukiyo.vercel.app',
+      'https://web-ukiyo.vercel.app'
+    ], 
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
