@@ -1,8 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import helmet from 'helmet'; // 🆕 1. Importamos Helmet para blindar cabeceras HTTP
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // 🆕 2. Activamos Helmet en la primera línea para interceptar y proteger todas las peticiones
+  app.use(helmet());
 
   // 1. Habilitamos CORS para que tu frontend de Nuxt (puerto 3000) pueda conectarse al backend
   app.enableCors({
