@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -42,7 +42,7 @@ export class UsuariosController {
   }
 
   // 🛡️ Protegido: Solo usuarios autenticados pueden modificar
-  @Put(':id')
+  @Patch(':id')
   @UseGuards(JwtAuthGuard)
   async update(@Param('id', ParseIntPipe) id: number, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     return await this.usuariosService.update(id, updateUsuarioDto);

@@ -24,6 +24,14 @@ export class UsuariosService {
         throw new BadRequestException('El correo electrónico ya está registrado.');
       }
 
+      // Verificar si el nombre de usuario ya existe (necesario porque se permite
+      // iniciar sesión con el nombre, y debe identificar a un único usuario)
+      const existeNombre = await this.findByNombre(createDto.nombre);
+
+      if (existeNombre) {
+        throw new BadRequestException('Ese nombre de usuario ya está en uso.');
+      }
+
       // Encriptar contraseña
       const hashedPassword = await bcrypt.hash(createDto.password || '123456', 10);
 
@@ -70,12 +78,30 @@ export class UsuariosService {
     });
   }
 
+  // 4b. Buscar un usuario por nombre (Esencial para el Login por nombre de usuario)
+  // OJO: "nombre" no es único en la BD, así que si hay varios usuarios con el mismo
+  // nombre, esto devolverá el primero que encuentre. Si esto da problemas, habría que
+  // añadir una restricción @unique a "nombre" en el schema de Prisma.
+  async findByNombre(nombre: string) {
+    return await this.prisma.usuarios.findFirst({
+      where: { nombre },
+    });
+  }
+
   // 5. Actualizar los datos del usuario (Nombre, Apellidos, Teléfono, Dirección...)
   async update(id: number, updateDto: UpdateUsuarioDto) {
     // Validar que el usuario existe antes de actualizar
-    await this.findOne(id);
+    const usuarioActual = await this.findOne(id);
 
     try {
+      // Si se está cambiando el nombre, comprobar que el nuevo nombre no lo tenga ya otro usuario
+      if (updateDto.nombre && updateDto.nombre !== usuarioActual.nombre) {
+        const existeNombre = await this.findByNombre(updateDto.nombre);
+        if (existeNombre) {
+          throw new BadRequestException('Ese nombre de usuario ya está en uso.');
+        }
+      }
+
       const dataToUpdate: any = { ...updateDto };
 
       // Si se actualiza la contraseña, la volvemos a encriptar

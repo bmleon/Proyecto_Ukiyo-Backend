@@ -14,12 +14,20 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto) {
-    this.logger.log(`Intento de login para: ${loginDto.email}`);
+    this.logger.log(`Intento de login para: ${loginDto.email || loginDto.nombre}`);
 
-    // 1. Buscar si el usuario existe
-    const usuario = await this.usuariosService.findByEmail(loginDto.email);
+    // 0. Debe llegar al menos un identificador (email o nombre)
+    if (!loginDto.email && !loginDto.nombre) {
+      throw new UnauthorizedException('Debes indicar tu email o tu nombre de usuario.');
+    }
+
+    // 1. Buscar el usuario por email o por nombre, según lo que se haya enviado
+    const usuario = loginDto.email
+      ? await this.usuariosService.findByEmail(loginDto.email)
+      : await this.usuariosService.findByNombre(loginDto.nombre!);
+
     if (!usuario) {
-      throw new UnauthorizedException('Credenciales incorrectas (Email no encontrado).');
+      throw new UnauthorizedException('Credenciales incorrectas (Usuario no encontrado).');
     }
 
     // 2. Comprobar si la contraseña coincide utilizando Bcrypt de forma segura
@@ -36,8 +44,9 @@ export class AuthService {
     };
 
     // 4. Devolver los datos del usuario y el token de acceso
+    // OJO: se llama "user" (no "usuario") para que coincida con lo que espera el frontend
     return {
-      usuario: {
+      user: {
         id: usuario.id,
         nombre: usuario.nombre,
         apellidos: usuario.apellidos,
