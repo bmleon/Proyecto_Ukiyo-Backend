@@ -41,6 +41,17 @@ export class PedidosController {
     return await this.pedidosService.findAllPedidos();
   }
 
+  // 🆕 Actualizar el estado de seguimiento de un pedido normal (delivery/take away)
+  @Put(':id/estado') // PUT http://localhost:3001/pedidos/1/estado
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async updateEstadoPedido(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('estado') estado: string,
+  ) {
+    return await this.pedidosService.updateEstadoPedido(id, estado);
+  }
+
   @Get('catering/todas') // GET http://localhost:3001/pedidos/catering/todas
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')

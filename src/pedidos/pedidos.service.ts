@@ -51,6 +51,7 @@ export class PedidosService {
             cliente_email: dto.clienteEmail,
             total: dto.total,
             estado_pago: 'PENDIENTE',
+            estado_pedido: 'PENDIENTE',
           },
         });
 
@@ -108,6 +109,19 @@ export class PedidosService {
       },
       orderBy: { creado_en: 'desc' },
     });
+  }
+
+  // 🆕 Actualizar el estado de seguimiento (preparación/reparto/entrega) de un pedido normal.
+  // No toca "estado_pago", que sigue gestionándose por separado.
+  async updateEstadoPedido(id: number, estado: string) {
+    try {
+      return await this.prisma.pedidos.update({
+        where: { id },
+        data: { estado_pedido: estado },
+      });
+    } catch {
+      throw new NotFoundException(`No se encontró el pedido con ID ${id}`);
+    }
   }
 
   // ==========================================

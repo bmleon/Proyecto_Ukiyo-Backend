@@ -150,6 +150,7 @@ model pedidos {
   cliente_email    String            @db.VarChar(150000)
   total            Decimal           @db.Decimal(10, 2)
   estado_pago      String?           @default("PENDIENTE") @db.VarChar(50)
+  estado_pedido    String?           @default("PENDIENTE") @db.VarChar(50) // PENDIENTE, EN_PREPARACION, EN_REPARTO, ENTREGADO, CANCELADO
   redsys_order_id  String?           @unique @db.VarChar(50)
   creado_en        DateTime?         @default(now()) @db.Timestamptz(6)
   detalle_pedidos  detalle_pedidos[]
