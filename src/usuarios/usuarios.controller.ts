@@ -19,9 +19,21 @@ export class UsuariosController {
     return todos.filter(u => u.rol === 'USER');
   }
 
-  // El registro de usuarios (Post) se queda PÚBLICO para que los clientes puedan registrarse en la web
+  // El registro de usuarios (Post) se queda PÚBLICO para que los clientes puedan registrarse en la web.
+  // 🔒 Por seguridad, el registro público SIEMPRE crea el usuario con rol USER,
+  // sin importar qué "rol" venga en el body — así nadie puede auto-registrarse como ADMIN.
   @Post()
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
+    const dtoSeguro = { ...createUsuarioDto, rol: 'USER' };
+    return await this.usuariosService.create(dtoSeguro);
+  }
+
+  // 🛡️ Alta de personal (ADMIN, CAMARERO, COCINERO, REPARTIDOR...) desde el panel de administración.
+  // Solo un ADMIN ya autenticado puede crear usuarios con un rol distinto de USER.
+  @Post('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async createComoAdmin(@Body() createUsuarioDto: CreateUsuarioDto) {
     return await this.usuariosService.create(createUsuarioDto);
   }
 
